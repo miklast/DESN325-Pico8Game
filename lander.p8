@@ -2,13 +2,18 @@ pico-8 cartridge // http://www.pico-8.com
 version 41
 __lua__
 function _init()
+    game_over = false
+    win=false
     g=0.025 --gravity
     make_player()
     make_ground()
 end
 
 function _update()
-    move_player()
+    if (not game_over) then
+        move_player()
+        check_land()
+    end
 end
 
 function _draw()
@@ -27,6 +32,7 @@ function make_player()
     p.sprite=1;
     p.thrust=0.075
 end
+
 function draw_player()
     spr(p.sprite,p.x,p.y)
     pal(12, 8)
@@ -38,8 +44,8 @@ function move_player()
 
     thrust()
 
-    p.x=p.dx --player move
-    p.y=p.dy
+    p.x+=p.dx --player move
+    p.y+=p.dy
 
     stay_on_screen()
 end
@@ -109,9 +115,34 @@ end
 end
 function draw_ground()
 for i=0,127 do
-line(i,gnd[i],i,127,5)
+line(i,gnd[i],i,127,7)
 end
 spr(pad.sprite, pad.x, pad.y, 2,1)
+end
+
+function check_land()
+    l_x=flr(p.x) --left side of ship
+    r_x=flr(p.x+7) --right side of ship
+    b_y=flr(p.y+7) --bottom of shop
+
+    over_pad=l_x>pad.x and r_x <=pad.x+pad.width
+    on_pad=b_y>=pad.y-1
+    slow=p.dy<1
+
+    if (over_pad and on_pad and slow) then
+        end_game(true)
+    elseif (over_pad and on_pad) then
+        end_game(false)
+    else
+        for i=l_x, r_x do
+            if (gnd[i]<=b_y) end_game(false)
+        end
+    end
+end
+
+function end_game(won)
+    game_over=true
+    win=won
 end
 
 
